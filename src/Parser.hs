@@ -21,6 +21,7 @@ import qualified Text.Parsec.Expr as Expr
 import Lexer
 import Syntax
 
+-- | Top-level parser.
 parse :: Parser Expr
 parse = func
 
@@ -28,6 +29,7 @@ parse = func
 -- Parsing function definitions.
 ------------------------------------------------------------------------------
 
+-- | Parse a full function definition.
 func :: Parser Expr
 func = do retType <- typeName
           name <- ident
@@ -44,9 +46,13 @@ func = do retType <- typeName
 -- Parsing arithmetic expressions.
 ------------------------------------------------------------------------------
 
+-- | Parse an arithmetic expression with infix operators.
 arithmeticExpr :: Parser Expr
 arithmeticExpr = Expr.buildExpressionParser opTable term
 
+-- | Parse a sub-expression to be separated by infix operators.
+-- 
+-- Mutually recursive with @arithmeticExpr@.
 term :: Parser Expr
 term =  parens arithmeticExpr
     <|> IntLiteral <$> integer
@@ -63,9 +69,12 @@ opTable = [ [ arithmeticOp "*" Times
 -- Parsing type declarations.
 ------------------------------------------------------------------------------
 
+-- | Parse a "type type", which determines how a user-defined type will be
+-- interpreted.
 typeType :: Parser (String -> Int -> Expr)
 typeType = reserved "int" >> return IntDef
 
+-- | Parse a type definition.
 intDef :: Parser Expr
 intDef =
   do reserved "type"
